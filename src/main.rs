@@ -41,6 +41,7 @@ async fn main(_spawner: Spawner) {
 
     let p = embassy_rp::init(Default::default());
 
+    // --- USB setup -----------------------------------------------------------
     // Create the driver, from the HAL.
     let driver = Driver::new(p.USB, Irqs);
 
@@ -87,6 +88,7 @@ async fn main(_spawner: Spawner) {
     // Grab the USB1 RX/TX channels
     let (mut usb_tx1, mut usb_rx1) = class1.split();
 
+    // --- UART PIO setup ------------------------------------------------------
      // PIO UART setup
     let pio::Pio {
         mut common, sm0, sm1, ..
@@ -98,13 +100,7 @@ async fn main(_spawner: Spawner) {
     let rx_program = PioUartRxProgram::new(&mut common);
     let mut uart_rx = PioUartRx::new(9600, &mut common, sm1, p.PIN_5, &rx_program);
 
-    // Create the pipes between USB0 and PIO UART
-    let mut usb_pipe: Pipe<NoopRawMutex, 20> = Pipe::new();
-    let (mut usb_pipe_reader, mut usb_pipe_writer) = usb_pipe.split();
-
-    let mut uart_pipe: Pipe<NoopRawMutex, 20> = Pipe::new();
-    let (mut uart_pipe_reader, mut uart_pipe_writer) = uart_pipe.split();
-
+    // --- USB1 echo setup -----------------------------------------------------
     let usb_hello_world = async {
         loop {
             info!("Wait for USB connection");
@@ -114,6 +110,14 @@ async fn main(_spawner: Spawner) {
             info!("Disconnected");
         }
     };
+
+    // --- USB0 <-> UART pipe setup --------------------------------------------
+    // Create the pipes between USB0 and PIO UART
+    let mut usb_pipe: Pipe<NoopRawMutex, 20> = Pipe::new();
+    let (mut usb_pipe_reader, mut usb_pipe_writer) = usb_pipe.split();
+
+    let mut uart_pipe: Pipe<NoopRawMutex, 20> = Pipe::new();
+    let (mut uart_pipe_reader, mut uart_pipe_writer) = uart_pipe.split();
 
     // Read + write from USB
     let usb_future = async {
@@ -136,6 +140,7 @@ async fn main(_spawner: Spawner) {
         uart_write(&mut uart_tx, &mut uart_pipe_reader),
     );
 
+    // --- Launch --------------------------------------------------------------
     // Run everything concurrently.
     // If we had made everything `'static` above instead, we could do this using separate tasks instead.
     join4(usb_hello_world, usb_fut, usb_future, uart_future).await;
@@ -164,7 +169,6 @@ async fn usb_echo<'d, T: Instance + 'd>(
         trace!("USB IN: {:x}", data);
         usb_tx.write(data).await?;
     }
-
 }
 
 /// Read from the USB and write it to the UART TX pipe
