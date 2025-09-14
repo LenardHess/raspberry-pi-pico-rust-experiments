@@ -81,7 +81,13 @@ async fn main(_spawner: Spawner) {
     // Run the USB device.
     let usb_fut = usb.run();
 
-    // PIO UART setup
+    // Grab the USB0 RX/TX channels
+    let (mut usb_tx0, mut usb_rx0) = class0.split();
+
+    // Grab the USB1 RX/TX channels
+    let (mut usb_tx1, mut usb_rx1) = class1.split();
+
+     // PIO UART setup
     let pio::Pio {
         mut common, sm0, sm1, ..
     } = pio::Pio::new(p.PIO0, Irqs);
@@ -98,12 +104,6 @@ async fn main(_spawner: Spawner) {
 
     let mut uart_pipe: Pipe<NoopRawMutex, 20> = Pipe::new();
     let (mut uart_pipe_reader, mut uart_pipe_writer) = uart_pipe.split();
-
-    // Grab the USB0 RX/TX channels
-    let (mut usb_tx0, mut usb_rx0) = class0.split();
-
-    // Grab the USB1 RX/TX channels
-    let (mut usb_tx1, mut usb_rx1) = class1.split();
 
     let usb_hello_world = async {
         loop {
