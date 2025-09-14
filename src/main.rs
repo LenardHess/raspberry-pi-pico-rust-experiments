@@ -46,7 +46,7 @@ async fn main(_spawner: Spawner) {
 
     // Create embassy-usb Config
     let mut config = Config::new(0xc0de, 0xcafe);
-    config.manufacturer = Some("Embassy");
+    config.manufacturer = Some("LenardHess");
     config.product = Some("USB CDC experiment");
     config.serial_number = Some("12345678");
     config.max_power = 100;
