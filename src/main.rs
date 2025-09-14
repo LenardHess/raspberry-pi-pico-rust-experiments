@@ -35,6 +35,19 @@ bind_interrupts!(struct Irqs {
     PIO0_IRQ_0 => pio::InterruptHandler<PIO0>;
 });
 
+// Program metadata for `picotool info`.
+// This isn't needed, but it's recommended to have these minimal entries.
+#[unsafe(link_section = ".bi_entries")]
+#[used]
+pub static PICOTOOL_ENTRIES: [embassy_rp::binary_info::EntryAddr; 4] = [
+    embassy_rp::binary_info::rp_program_name!(c"USB CDC experiments"),
+    embassy_rp::binary_info::rp_program_description!(
+        c"This program uses the RP Pico 2 W to implement USB CDC connections"
+    ),
+    embassy_rp::binary_info::rp_cargo_version!(),
+    embassy_rp::binary_info::rp_program_build_attribute!(),
+];
+
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
     info!("Hello there!");
