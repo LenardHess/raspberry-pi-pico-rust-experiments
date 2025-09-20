@@ -208,7 +208,7 @@ async fn usb_write<'d, T: Instance + 'd>(
         let n = (*usb_pipe_reader).read(&mut buf).await;
         let data = &buf[..n];
         trace!("USB OUT: {:x}", data);
-        usb_tx.write_packet(&data).await?;
+        usb_tx.write_packet(data).await?;
     }
 }
 
@@ -239,6 +239,6 @@ async fn uart_write<PIO: pio::Instance, const SM: usize>(
         let n = (*uart_pipe_reader).read(&mut buf).await;
         let data = &buf[..n];
         trace!("UART OUT: {:x}", data);
-        let _ = uart_tx.write(&data).await;
+        let _ = uart_tx.write(data).await;
     }
 }
