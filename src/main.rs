@@ -13,6 +13,7 @@
 #![allow(async_fn_in_trait)]
 
 mod tmcl;
+mod tmcl_usb;
 
 use defmt::{info, panic, trace};
 use embassy_executor::Spawner;
@@ -29,7 +30,7 @@ use embassy_usb::{Builder, Config};
 use embedded_io_async::{Read, Write};
 use {defmt_rtt as _, panic_probe as _};
 
-use tmcl::tmcl_usbhandler;
+use tmcl_usb::tmcl_usbhandler;
 
 const USB_CTRL_PACKET_SIZE: u8 = 64;
 const USB_CDC_PACKET_SIZE: u16 = 64;
