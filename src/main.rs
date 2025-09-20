@@ -12,6 +12,8 @@
 #![no_main]
 #![allow(async_fn_in_trait)]
 
+mod tmcl;
+
 use defmt::{info, panic, trace};
 use embassy_executor::Spawner;
 use embassy_futures::join::*;
@@ -26,6 +28,8 @@ use embassy_usb::driver::EndpointError;
 use embassy_usb::{Builder, Config};
 use embedded_io_async::{Read, Write};
 use {defmt_rtt as _, panic_probe as _};
+
+use tmcl::tmcl_usbhandler;
 
 const USB_CTRL_PACKET_SIZE: u8 = 64;
 const USB_CDC_PACKET_SIZE: u16 = 64;
@@ -75,6 +79,8 @@ async fn main(_spawner: Spawner) {
     let mut state0 = State::new();
     let mut state1 = State::new();
 
+    let mut usb1_rx_buf = [0u8; USB_CDC_PACKET_SIZE as usize];
+
     let mut builder = Builder::new(
         driver,
         config,
@@ -99,7 +105,8 @@ async fn main(_spawner: Spawner) {
     let (mut usb_tx0, mut usb_rx0) = class0.split();
 
     // Grab the USB1 RX/TX channels
-    let (mut usb_tx1, mut usb_rx1) = class1.split();
+    let (mut usb_tx1, usb_rx1) = class1.split();
+    let mut usb_rx1 = usb_rx1.into_buffered(&mut usb1_rx_buf);
 
     // --- UART PIO setup ------------------------------------------------------
      // PIO UART setup
@@ -114,15 +121,15 @@ async fn main(_spawner: Spawner) {
     let mut uart_rx = PioUartRx::new(9600, &mut common, sm1, p.PIN_5, &rx_program);
 
     // --- USB1 echo setup -----------------------------------------------------
-    let usb_hello_world = async {
-        loop {
-            info!("Wait for USB connection");
-            usb_rx1.wait_connection().await;
-            info!("Connected");
-            let _ = usb_echo(&mut usb_rx1, &mut usb_tx1).await;
-            info!("Disconnected");
-        }
-    };
+    // let usb_hello_world = async {
+    //     loop {
+    //         info!("Wait for USB connection");
+    //         usb_rx1.wait_connection().await;
+    //         info!("Connected");
+    //         let _ = usb_echo(&mut usb_rx1, &mut usb_tx1).await;
+    //         info!("Disconnected");
+    //     }
+    // };
 
     // --- USB0 <-> UART pipe setup --------------------------------------------
     // Create the pipes between USB0 and PIO UART
@@ -177,19 +184,21 @@ impl From<EndpointError> for Disconnected {
     }
 }
 
-/// Read from the USB and write it back to a USB
-async fn usb_echo<'d, T: Instance + 'd>(
-    usb_rx: &mut Receiver<'d, Driver<'d, T>>,
-    usb_tx: &mut Sender<'d, Driver<'d, T>>
-) -> Result<(), Disconnected> {
-    let mut buf = [0; USB_CDC_PACKET_SIZE as usize];
-    loop {
-        let n = usb_rx.read_packet(&mut buf).await?;
-        let data = &buf[..n];
-        trace!("USB IN: {:x}", data);
-        usb_tx.write(data).await?;
-    }
-}
+// /// Read from the USB and write it back to a USB
+// async fn usb_echo<'d, T: Instance + 'd>(
+//     usb_rx: &mut Receiver<'d, Driver<'d, T>>,
+//     usb_tx: &mut Sender<'d, Driver<'d, T>>
+// ) -> Result<(), Disconnected> {
+//     let mut buf = [0; USB_CDC_PACKET_SIZE as usize];
+//     loop {
+//         cortex_m::asm::nop();
+//         let n = usb_rx.read_packet(&mut buf).await?;
+//         let data = &buf[..n];
+//         trace!("USB IN: {:x}", data);
+//         usb_tx.write(data).await?;
+//         cortex_m::asm::nop();
+//     }
+// }
 
 /// Read from the USB and write it to the UART TX pipe
 async fn usb_read<'d, T: Instance + 'd>(
