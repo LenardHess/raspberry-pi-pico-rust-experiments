@@ -14,7 +14,7 @@
 
 use defmt::{info, panic, trace};
 use embassy_executor::Spawner;
-use embassy_futures::join::{join, join4};
+use embassy_futures::join::*;
 use embassy_rp::peripherals::{PIO0, USB};
 use embassy_rp::pio_programs::uart::{PioUartRx, PioUartRxProgram, PioUartTx, PioUartTxProgram};
 use embassy_rp::usb::{Driver, Instance, InterruptHandler};
@@ -153,10 +153,17 @@ async fn main(_spawner: Spawner) {
         uart_write(&mut uart_tx, &mut uart_pipe_reader),
     );
 
+
     // --- Launch --------------------------------------------------------------
     // Run everything concurrently.
     // If we had made everything `'static` above instead, we could do this using separate tasks instead.
-    join4(usb_hello_world, usb_fut, usb_future, uart_future).await;
+    join4(
+        //usb_hello_world,
+        tmcl_usbhandler(&mut usb_rx1, &mut usb_tx1),
+        usb_fut,
+        usb_future,
+        uart_future
+    ).await;
 }
 
 struct Disconnected {}
