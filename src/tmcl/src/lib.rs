@@ -1,4 +1,5 @@
 //! Basic TMCL implementation
+#![no_std]
 #![allow(dead_code)]
 #![allow(unreachable_code)]
 #![allow(unused_variables)]

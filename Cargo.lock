@@ -1240,6 +1240,7 @@ dependencies = [
  "embedded-hal-async",
  "embedded-io-async",
  "panic-probe",
+ "tmcl",
 ]
 
 [[package]]
@@ -1517,6 +1518,13 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.106",
+]
+
+[[package]]
+name = "tmcl"
+version = "0.1.0"
+dependencies = [
+ "defmt 1.0.1",
 ]
 
 [[package]]

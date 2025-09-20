@@ -12,7 +12,6 @@
 #![no_main]
 #![allow(async_fn_in_trait)]
 
-mod tmcl;
 mod tmcl_usb;
 
 use defmt::{info, panic, trace};

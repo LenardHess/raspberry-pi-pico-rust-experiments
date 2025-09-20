@@ -5,12 +5,11 @@
 
 use defmt::{info};
 
+use tmcl::{TMCLRequest, TMCLStack, TMCL_PACKET_SIZE};
 use embassy_rp::usb::{Driver, Instance};
 use embassy_usb::class::cdc_acm::{BufferedReceiver, Sender};
 use embassy_usb::driver::EndpointError;
 use embedded_io_async::{Write, Read};
-
-use crate::tmcl::{TMCLRequest, TMCLStack, TMCL_PACKET_SIZE};
 
 // ToDo: Duplicated from main.rs
 const USB_CDC_PACKET_SIZE: u16 = 64;
