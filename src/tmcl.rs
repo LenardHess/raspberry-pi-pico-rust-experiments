@@ -61,6 +61,9 @@ impl TMCLRequest  {
 #[derive(Clone, Copy)]
 pub enum TMCLReplyStatus {
     ChecksumError = 1,
+    InvalidCommand = 2,
+    InvalidType = 3,
+    InvalidValue = 4,
     Ok = 100,
 }
 
@@ -107,6 +110,7 @@ impl TMCLReply {
 pub struct TMCLStack {
     pub host_address : u8,
     pub device_address : u8,
+    pub module_id : u8,
 }
 
 impl TMCLStack {
@@ -123,6 +127,26 @@ impl TMCLStack {
             return Some(reply);
         }
 
+        match request.opcode {
+            157 => self.cmd_get_info(request, &mut reply),
+            _ => reply.status = TMCLReplyStatus::InvalidCommand
+        }
+
         Some(reply)
+    }
+
+    fn cmd_get_info(&self, request : &TMCLRequest, reply : &mut TMCLReply) -> () {
+        let info = match request.index {
+            // Module ID
+            0 => Some(self.module_id as u32),
+
+            // Unknown value
+            _ => None
+        };
+
+        match info {
+            Some(v) => reply.value=v,
+            None => reply.status = TMCLReplyStatus::InvalidType
+        }
     }
 }

@@ -32,6 +32,7 @@ pub async fn tmcl_usbhandler<'d, T: Instance + 'd>(
     let tmcl = TMCLStack {
         host_address: TMCL_HOST_ADDRESS,
         device_address: 1,
+        module_id: 255,
     };
 
     // Start the receive loop
