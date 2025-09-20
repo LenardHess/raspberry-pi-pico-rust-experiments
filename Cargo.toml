@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "usb_echo"
+name = "raspberry_pi_pico_rust_experiments"
 version = "0.1.0"
 
 publish = false
