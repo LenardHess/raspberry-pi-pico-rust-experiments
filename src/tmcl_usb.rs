@@ -10,7 +10,7 @@ use embassy_usb::class::cdc_acm::{BufferedReceiver, Sender};
 use embassy_usb::driver::EndpointError;
 use embedded_io_async::{Write, Read};
 
-use crate::tmcl::{TMCLReply, TMCLReplyStatus, TMCLRequest, TMCL_PACKET_SIZE};
+use crate::tmcl::{TMCLRequest, TMCLStack, TMCL_PACKET_SIZE};
 
 // ToDo: Duplicated from main.rs
 const USB_CDC_PACKET_SIZE: u16 = 64;
@@ -28,9 +28,13 @@ pub async fn tmcl_usbhandler<'d, T: Instance + 'd>(
     usb_rx.wait_connection().await;
     info!("Connected");
 
+    // Create the TMCL stack
+    let tmcl = TMCLStack {
+        host_address: TMCL_HOST_ADDRESS
+    };
+
     // Start the receive loop
     let mut buf = [0; TMCL_PACKET_SIZE as usize];
-    //let mut reply_buf = [65; USB_CDC_PACKET_SIZE as usize];
     loop {
         let bytes = usb_rx.read(&mut buf).await?;
 
@@ -41,18 +45,7 @@ pub async fn tmcl_usbhandler<'d, T: Instance + 'd>(
 
         info!("Received USB TMCL packet");
         let request = TMCLRequest::new(&buf);
-        let mut reply = TMCLReply::new(TMCL_HOST_ADDRESS, &request);
-
-        if !request.is_checksum_valid()
-        {
-            info!("Invalid TMCL checksum");
-            reply.status = TMCLReplyStatus::ChecksumError;
-            usb_tx.write(&reply.serialize()).await?;
-            continue;
-        }
-
-        info!("Handling TMCL request");
-        // Todo: Handle request
+        let reply = tmcl.process(&request);
 
         // Send the reply
         usb_tx.write(&reply.serialize()).await?;

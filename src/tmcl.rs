@@ -3,6 +3,9 @@
 #![allow(unreachable_code)]
 #![allow(unused_variables)]
 
+#[allow(unused_imports)]
+use defmt::{debug, info, warn, error};
+
 pub const TMCL_PACKET_SIZE: usize = 9;
 
 #[allow(dead_code)]
@@ -98,5 +101,23 @@ impl TMCLReply {
             (self.value      ) as u8,
             self.calculate_checksum()
         ]
+    }
+}
+
+pub struct TMCLStack {
+    pub host_address : u8,
+}
+
+impl TMCLStack {
+    pub fn process(&self, request : &TMCLRequest) -> TMCLReply {
+        let mut reply = TMCLReply::new(self.host_address, request);
+
+        if !request.is_checksum_valid() {
+            info!("Invalid TMCL checksum");
+            reply.status = TMCLReplyStatus::ChecksumError;
+            return reply;
+        }
+
+        reply
     }
 }
