@@ -30,7 +30,8 @@ pub async fn tmcl_usbhandler<'d, T: Instance + 'd>(
 
     // Create the TMCL stack
     let tmcl = TMCLStack {
-        host_address: TMCL_HOST_ADDRESS
+        host_address: TMCL_HOST_ADDRESS,
+        device_address: 1,
     };
 
     // Start the receive loop
@@ -48,6 +49,10 @@ pub async fn tmcl_usbhandler<'d, T: Instance + 'd>(
         let reply = tmcl.process(&request);
 
         // Send the reply
-        usb_tx.write(&reply.serialize()).await?;
+        if let Some(reply) = reply {
+            usb_tx.write(&reply.serialize()).await?;
+        } else {
+            info!("USB TMCL packet not addressed to us");
+        }
     }
 }

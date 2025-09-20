@@ -106,18 +106,23 @@ impl TMCLReply {
 
 pub struct TMCLStack {
     pub host_address : u8,
+    pub device_address : u8,
 }
 
 impl TMCLStack {
-    pub fn process(&self, request : &TMCLRequest) -> TMCLReply {
+    pub fn process(&self, request : &TMCLRequest) -> Option<TMCLReply> {
         let mut reply = TMCLReply::new(self.host_address, request);
+
+        if request.device_addr != self.device_address {
+            return None;
+        }
 
         if !request.is_checksum_valid() {
             info!("Invalid TMCL checksum");
             reply.status = TMCLReplyStatus::ChecksumError;
-            return reply;
+            return Some(reply);
         }
 
-        reply
+        Some(reply)
     }
 }
