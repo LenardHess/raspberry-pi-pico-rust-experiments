@@ -56,3 +56,11 @@ pub async fn tmcl_usbhandler<'d, T: Instance + 'd>(
         }
     }
 }
+
+#[unsafe(no_mangle)] // Don't mangle the function name to allow tmcl crate to extern-link to it // ToDo: Can you do this without no_mangle?
+fn tmcl_device_specific_info(index : u8) -> Option<u32> {
+    match index {
+        200 => Some(0xdeadbeef),
+        _ => None
+    }
+}

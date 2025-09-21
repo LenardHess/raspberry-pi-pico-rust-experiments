@@ -7,6 +7,8 @@
 #[allow(unused_imports)]
 use defmt::{debug, info, warn, error};
 
+mod cmd_get_info;
+
 pub const TMCL_PACKET_SIZE: usize = 9;
 
 #[allow(dead_code)]
@@ -129,25 +131,10 @@ impl TMCLStack {
         }
 
         match request.opcode {
-            157 => self.cmd_get_info(request, &mut reply),
+            157 => cmd_get_info::cmd_get_info(self, request, &mut reply),
             _ => reply.status = TMCLReplyStatus::InvalidCommand
         }
 
         Some(reply)
-    }
-
-    fn cmd_get_info(&self, request : &TMCLRequest, reply : &mut TMCLReply) -> () {
-        let info = match request.index {
-            // Module ID
-            0 => Some(self.module_id as u32),
-
-            // Unknown value
-            _ => None
-        };
-
-        match info {
-            Some(v) => reply.value=v,
-            None => reply.status = TMCLReplyStatus::InvalidType
-        }
     }
 }
