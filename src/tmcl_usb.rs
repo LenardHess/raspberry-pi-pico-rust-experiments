@@ -11,9 +11,6 @@ use embassy_usb::class::cdc_acm::{BufferedReceiver, Sender};
 use embassy_usb::driver::EndpointError;
 use embedded_io_async::{Write, Read};
 
-// ToDo: Duplicated from main.rs
-const USB_CDC_PACKET_SIZE: u16 = 64;
-
 const TMCL_HOST_ADDRESS: u8 = 0xFF;
 
 #[allow(dead_code)]
