@@ -13,6 +13,7 @@
 #![allow(async_fn_in_trait)]
 
 mod tmcl_usb;
+mod tmcl_integration;
 
 use defmt::{info, panic, trace};
 use embassy_executor::Spawner;

@@ -1,10 +1,17 @@
 
 use crate::{TMCLRequest, TMCLReply, TMCLStack, TMCLReplyStatus};
 
+unsafe extern "Rust" {
+    safe static FIRMWARE_VERSION_MAJOR : u16;
+    safe static FIRMWARE_VERSION_MINOR : u16;
+}
+
 pub(crate) fn cmd_get_info(tmcl_stack : &TMCLStack, request : &TMCLRequest, reply : &mut TMCLReply) -> () {
     let info = match request.index {
         // Module ID
         0 => Some(tmcl_stack.module_id as u32),
+
+        1 => Some((FIRMWARE_VERSION_MAJOR as u32) << 16 | FIRMWARE_VERSION_MINOR as u32),
 
         // Device-specific area
         200..=240 =>  device_specific_info(request.index),

@@ -59,6 +59,20 @@ SECTIONS {
 } INSERT AFTER .text;
 
 SECTIONS {
+    .aps : ALIGN(4)
+    {
+        /* We put this in the header */
+        __ap_entries_start = .;
+        /* Here are the entries */
+        KEEP(*(.ap_entries));
+        /* Keep this block a nice round size */
+        . = ALIGN(4);
+        /* We put this in the header */
+        __ap_entries_end = .;
+    } > FLASH
+} INSERT AFTER .text;
+
+SECTIONS {
     /* ### Boot ROM extra info
      *
      * Goes after everything in our program, so it can contain a signature.
